@@ -5,6 +5,7 @@ from .states.AddComicState import AddComic
 from aiogram.fsm.context import FSMContext
 from comicsChecker.user.User import User, global_service
 from comicsChecker.comic.ComicDTO import ComicDTO
+import re
 
 router = Router()
 bot_send_message = None
@@ -12,6 +13,14 @@ bot_send_message = None
 def set_bot_send_message(send_message_method):
     global bot_send_message
     bot_send_message = send_message_method
+
+def checkUrl(url: str) -> bool:
+    url = url.strip()
+    pattern = r"^https://teletype\.in/.+/[-a-zA-Z0-9]+-\d+-glava$"
+    if re.match(pattern, url):
+        return True
+    else:
+        return False
 
 def sendDataToService(message:Message, data):
     user = global_service.get_user_by_chat_id(message.chat.id)
@@ -36,10 +45,14 @@ async def regComicTitle(message: Message, state: FSMContext):
 
 @router.message(AddComic.url)
 async def regComicURL(message: Message, state: FSMContext):
-    await state.update_data(url = message.text)
-    data = await state.get_data()
-    sendDataToService(message, data)
-    await message.answer("Тайтл добавлен")
+    if checkUrl(message.text):
+        await state.update_data(url = message.text)
+        data = await state.get_data()
+        sendDataToService(message, data)
+        await state.clear()
+        await message.answer("Тайтл добавлен")
+    else:
+        await message.answer("Неправильная ссылка.\nОна должна иметь номер главы и слово 'glava'")
 
 async def notifyUser(chat_id: int, text: str):
     if bot_send_message is None:
