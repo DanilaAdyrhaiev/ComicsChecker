@@ -1,7 +1,7 @@
 import asyncio
-import threading
 from comicsChecker.checker import start_comics_check
 from telegram.bot import start_bot
+
 
 async def main():
     asyncio.create_task(start_comics_check())  

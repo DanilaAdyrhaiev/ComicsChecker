@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ComicsLibrary/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://root:example@mongodb:27017/comics_db?authSource=admin
+      - MONGO_DB_NAME=comics_db
+      - MONGO_USERS_COLLECTION=users_test
+      - MONGO_COMICS_COLLECTION=comics_test
+      - REDIS_URI=redis://redis:6379/0
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - comics_network
+    volumes:
+      - ./ComicsLibrary:/app/ComicsLibrary
+
+
+  mongodb:
+    image: mongo:4.4
+    platform: linux/amd64  # Specifically for Mac compatibility
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - comics_network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - comics_network
+
+networks:
+  comics_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
