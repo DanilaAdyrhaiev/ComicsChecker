@@ -3,6 +3,6 @@ from typing import Optional
 
 
 @dataclass
-class EntityDTO:
+class EntityDTO():
     id: Optional[str] = None
 

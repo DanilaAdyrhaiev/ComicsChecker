@@ -1,5 +1,3 @@
-from astroid.modutils import logger
-
 from ..Repository import Repository
 from ComicsLibrary.entities import BaseEntity as Entity
 from ComicsLibrary.CRUDs import EntityCRUD
@@ -8,8 +6,9 @@ from ComicsLibrary.loggers.Logger import Logger
 
 
 class EntityRepository(Repository):
-    def __init__(self, crud: EntityCRUD):
+    def __init__(self, crud: EntityCRUD, cls: Entity.__class__ = None):
         self.crud = crud
+        self.cls = cls
         self.logger = Logger.get_logger(name=self.__class__.__name__)
 
     def save(self, entity: Entity) -> Optional[Entity]:
@@ -43,7 +42,9 @@ class EntityRepository(Repository):
     def update(self, entity: Entity) -> Optional[Entity]:
         self.logger.debug(f'Updating {entity}')
         try:
-            val = self.crud.update(entity._id, entity.to_dict())
+            entity_dict = entity.to_dict()
+            self.logger.debug(f'Converted from entity to dict: {entity_dict}')
+            val = self.crud.update(entity.id, entity_dict)
             if val > 0:
                 self.logger.debug(f'Successfully updated entity with id {entity._id}')
                 return entity
@@ -60,20 +61,34 @@ class EntityRepository(Repository):
             result = self.crud.read_by_id(entity_id)
             if result is None:
                 self.logger.debug(f'No entity found with id {entity_id}')
-            return result
+                return None
+            entity = self.cls.from_dict(result)
+            self.logger.debug(f'Found entity {entity}')
+            return entity
         except Exception as e:
             self.logger.error(f'Failed to find entity with id {entity_id}: {str(e)}', exc_info=True)
             return None
 
-    def get_all(self) -> Optional[List[Entity]]:
+    def get_all(self, entity: Entity) -> Optional[List[Entity]] | None:
         self.logger.debug('Getting all entities')
         try:
             results: List[Dict[str, Any]] = self.crud.read_all()
+            if not results:
+                self.logger.debug('No entities found')
+                return []
             self.logger.debug(f'Found {len(results) if results else 0} entities')
-            for entity in results:
-                entity['_id'] = str(entity['_id'])
-            vals = [Entity.from_dict(entity) for entity in results]
-            return vals
+            converted_entities = []
+            for entity_dict in results:
+                entity_dict['_id'] = str(entity_dict['_id'])
+                self.logger.debug(f'Converting entity: {entity_dict}')
+                try:
+                    converted_entity = self.cls.from_dict(entity_dict)
+                    converted_entities.append(converted_entity)
+                except Exception as e:
+                    self.logger.error(f'Failed to convert entity {entity_dict}: {str(e)}')
+                    continue
+            self.logger.debug(f'Successfully converted {len(converted_entities)} entities')
+            return converted_entities
         except Exception as e:
             self.logger.error(f'Failed to get all entities: {str(e)}', exc_info=True)
             return None

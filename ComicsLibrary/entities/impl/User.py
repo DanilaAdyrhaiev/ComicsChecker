@@ -18,7 +18,7 @@ class User(Entity):
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            _id=data['_id'],
+            _id=str(data['_id']),
             chat_id=data['chat_id'],
             name=data['name'],
             comics=data['comics']

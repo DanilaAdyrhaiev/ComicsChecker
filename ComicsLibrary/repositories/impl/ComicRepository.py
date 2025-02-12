@@ -6,7 +6,7 @@ from typing import Optional
 
 class ComicRepository(EntityRepository):
     def __init__(self):
-        super().__init__(ComicCRUD())
+        super().__init__(ComicCRUD(), Comic)
 
     def save(self, comic: Comic) -> Optional[Comic]:
         if comic.id is None:
@@ -16,6 +16,9 @@ class ComicRepository(EntityRepository):
             return entity
         else:
             return self.update(comic)
+
+    def get_all(self) -> Optional[Comic]:
+        return super().get_all(Comic())
 
     def find_by_title(self, title: str) -> Optional[Comic]:
         self.logger.info("Finding comic with title: {}".format(title))

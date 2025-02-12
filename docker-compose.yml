@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app:
+  comicslibrary:
     build:
       context: .
       dockerfile: ComicsLibrary/Dockerfile
@@ -41,6 +41,24 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - comics_network
+
+  comicschecker:
+    build:
+      context: .
+      dockerfile: Checker/Dockerfile
+    ports:
+      - "8001:8001"
+    networks:
+      - comics_network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Bot/Dockerfile
+    ports:
+      - "8002:8002"
     networks:
       - comics_network
 

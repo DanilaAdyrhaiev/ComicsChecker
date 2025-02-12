@@ -1,0 +1,8 @@
+flask
+python-dotenv
+aiogram
+httpx
+requests
+uvicorn
+quart
+hypercorn

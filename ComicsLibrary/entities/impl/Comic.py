@@ -19,9 +19,9 @@ class Comic(Entity):
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            _id=data['_id'],
+            _id=str(data['_id']),
             title=data['title'],
-            last_chapter_date=data['last_chapter_date'],
+            last_chapter_date=datetime.fromisoformat(data['last_chapter_date']) if data['last_chapter_date'] else None,
             users=data['users']
         )
 

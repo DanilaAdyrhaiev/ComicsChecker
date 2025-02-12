@@ -6,7 +6,7 @@ from typing import Optional
 
 class UserRepository(EntityRepository):
     def __init__(self):
-        super().__init__(UserCRUD())
+        super().__init__(UserCRUD(), User)
 
     def save(self, user: User) -> Optional[User]:
         if user.id is None:
@@ -16,6 +16,9 @@ class UserRepository(EntityRepository):
             return entity
         else:
             return self.update(user)
+
+    def get_all(self):
+        return super().get_all(User())
 
     def find_by_chat_id(self, chat_id) -> Optional[User]:
         self.logger.info("Finding user by chat id")

@@ -1,2 +1,6 @@
 ComicsLibrary/.env
 .idea
+Bot/.env
+Bot/Dockerfile
+Checker/.env
+Checker/Dockerfile

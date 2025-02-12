@@ -38,7 +38,7 @@ class EntityService(Service):
             self.logger.debug('Updated entity %s', updated_entity)
             return self.mapper.to_dto(updated_entity)
         else:
-            self.logger.debug("Failed to update entity %s", entity_dto)
+            self.logger.error("Failed to update entity %s", entity_dto)
             return None
 
     def get_all(self) -> List[EntityDTO]:
