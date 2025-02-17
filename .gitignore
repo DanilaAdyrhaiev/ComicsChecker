@@ -3,4 +3,4 @@ ComicsLibrary/.env
 Bot/.env
 Bot/Dockerfile
 Checker/.env
-Checker/Dockerfile
+CheckerService/Dockerfile

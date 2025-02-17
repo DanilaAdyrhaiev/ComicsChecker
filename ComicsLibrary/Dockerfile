@@ -9,6 +9,8 @@ COPY ComicsLibrary/requirements.txt /app/
 
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y tree
+
 
 # Копируем остальные файлы
 COPY ComicsLibrary /app/ComicsLibrary
@@ -20,6 +22,4 @@ ENV PYTHONPATH=/app
 # Открываем порт
 EXPOSE 8000
 
-# Запускаем приложение
-CMD ["python", "main.py"]
-
+CMD tree /app && python main.py

@@ -88,40 +88,49 @@ async def check_new_messages(event) -> None:
 
 
 async def check_comics(title: str) -> bool:
-    logger.info(f"Checking for comics with title: {title}")
+    logger.info(f"Starting comic search for title: {title}")
     count = 0
-    max_messages = 5000
-    last_id = None
+    max_messages = 10000
+    last_id = 0
 
+    logger.info("Fetching last message ID")
+    messages = await client.get_messages(channel_username, limit=1)
+    if messages:
+        last_id = messages[0].id
+    logger.debug(f"Latest message ID: {last_id}")
+
+    while count * 200 < max_messages:
+        res = await check_comics_in_channel(title, last_id - count * 200, count)
+        if res is None:
+            return False
+        elif res is False:
+            count += 1
+            continue
+        else:
+            return res
+
+    logger.info(f"Comic '{title}' not found after checking {count * 200} messages")
+    return False
+
+
+async def check_comics_in_channel(title: str, max_id: int, count: int) -> bool | None:
     try:
-        async for message in client.iter_messages(channel_username, limit=1):
-            last_id = message.id
-            logger.debug(f"Last message ID: {last_id}")
+        messages_batch = await client.get_messages(channel_username, limit=200, max_id=max_id)
 
-        while count < max_messages and last_id is not None:
-            messages_batch = []
-            async for message in client.iter_messages(channel_username, limit=500, max_id=last_id):
-                messages_batch.append(message)
+        if not messages_batch:
+            logger.info(f"No more messages found after {count * 200} messages.")
+            return None
 
-            if not messages_batch:
-                logger.info(f"No more messages to process after {count} messages")
-                break
-            for message in messages_batch:
-                count += 1
-                text = message.text.split("\n")[0] if message.text else ""
-                logger.debug(f"Checking message {count} (ID: {message.id}): {text if text else 'No text'}")
+        for i, message in enumerate(messages_batch):
+            current_count = count * 200 + i  # Правильный подсчет обработанных сообщений
+            text = message.text.split("\n")[0] if message.text else ""
+            logger.debug(f"Processing message {current_count} (ID: {message.id}): {text if text else 'No text'}")
 
-                if text and title.lower() in text.lower():
-                    logger.info(f"Found comics '{title}' in channel history")
-                    return True
+            if text and title.lower() in text.lower():
+                logger.info(f"Comic '{title}' found in messages")
+                return True
 
-                last_id = message.id
-
-            logger.debug(f"Processed {count} messages so far")
-            logger.debug("Sleeping for 2 seconds to avoid rate limiting")
-            await asyncio.sleep(2)
-
-        logger.info(f"Comics '{title}' not found in channel history after checking {count} messages")
+        logger.debug(f"Processed {(count + 1) * 200} messages so far, next last_id: {messages_batch[-1].id}")
         return False
 
     except FloodWaitError as e:
@@ -130,5 +139,5 @@ async def check_comics(title: str) -> bool:
         return await check_comics(title)
 
     except Exception as e:
-        logger.error(f"Error while checking comics history: {str(e)}")
+        logger.exception("Exception occurred while checking comics history")
         raise

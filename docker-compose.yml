@@ -10,8 +10,8 @@ services:
     environment:
       - MONGO_URI=mongodb://root:example@mongodb:27017/comics_db?authSource=admin
       - MONGO_DB_NAME=comics_db
-      - MONGO_USERS_COLLECTION=users_test
-      - MONGO_COMICS_COLLECTION=comics_test
+      - MONGO_USERS_COLLECTION=users
+      - MONGO_COMICS_COLLECTION=comics
       - REDIS_URI=redis://redis:6379/0
     depends_on:
       - mongodb
@@ -47,7 +47,7 @@ services:
   comicschecker:
     build:
       context: .
-      dockerfile: Checker/Dockerfile
+      dockerfile: CheckerService/Dockerfile
     ports:
       - "8001:8001"
     networks:

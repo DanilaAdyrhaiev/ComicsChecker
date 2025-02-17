@@ -1,9 +1,0 @@
-flask
-telethon
-httpx
-requests
-python-dotenv
-aiogram
-uvicorn
-quart
-hypercorn
